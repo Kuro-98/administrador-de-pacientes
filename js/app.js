@@ -17,6 +17,7 @@ sintomasInput.addEventListener('change', datosCita);
 formulario.addEventListener('submit', submitCita);
 
 const citaObj = {
+	id: generarId(),
 	paciente: '',
 	propietario: '',
 	email: '',
@@ -71,6 +72,7 @@ class AdminCitas {
 	agregar(cita) {
 		this.citas = [...this.citas, cita];
 		this.mostrar();
+		console.log(this.citas);
 	}
 
 	mostrar() {
@@ -177,6 +179,11 @@ function submitCita(e) {
 
 function reiniciarObjetoCita() {
 	Object.keys(citaObj).forEach((key) => (citaObj[key] = ''));
+	citaObj.id = generarId();
+}
+
+function generarId() {
+	return Math.random().toString(36).substring(2) + Date.now();
 }
 
 function cargarEdicion(cita) {
