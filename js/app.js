@@ -5,6 +5,7 @@ const fechaeInput = document.querySelector('#fecha');
 const sintomasInput = document.querySelector('#sintomas');
 
 const formulario = document.querySelector('#formulario-cita');
+const formularioInput = document.querySelector('#formulario-cita input[type="submit"]');
 
 const contenedorCitas = document.querySelector('#citas');
 
@@ -15,6 +16,8 @@ fechaeInput.addEventListener('change', datosCita);
 sintomasInput.addEventListener('change', datosCita);
 
 formulario.addEventListener('submit', submitCita);
+
+let editando = false;
 
 const citaObj = {
 	id: generarId(),
@@ -75,9 +78,24 @@ class AdminCitas {
 		console.log(this.citas);
 	}
 
+	editar(citaActualizada) {
+		this.citas = this.citas.map((cita) => (cita.id === citaActualizada.id ? citaActualizada : cita));
+		this.mostrar();
+	}
+
+	eliminar(id) {
+		this.citas = this.citas.filter((cita) => cita.id !== id);
+		this.mostrar();
+	}
+
 	mostrar() {
 		while (contenedorCitas.firstChild) {
 			contenedorCitas.removeChild(contenedorCitas.firstChild);
+		}
+
+		if (this.citas.length === 0) {
+			contenedorCitas.innerHTML = '<p class="text-xl mt-5 mb-10 text-center">No Hay Pacientes</p>';
+			return;
 		}
 
 		this.citas.forEach((cita) => {
@@ -140,6 +158,7 @@ class AdminCitas {
 			);
 			btnEliminar.innerHTML =
 				'Eliminar <svg fill="none" class="h-5 w-5" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" stroke="currentColor"><path d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+			btnEliminar.onclick = () => this.eliminar(cita.id);
 
 			const contenedorBotones = document.createElement('div');
 			contenedorBotones.classList.add('flex', 'justify-between', 'mt-10');
@@ -171,10 +190,18 @@ function submitCita(e) {
 		return;
 	}
 
-	citas.agregar({ ...citaObj });
+	if (editando) {
+		citas.editar({ ...citaObj });
+		new Notificacion({ texto: 'Cita editada', tipo: 'exito' });
+	} else {
+		citas.agregar({ ...citaObj });
+		new Notificacion({ texto: 'Paciente registrado', tipo: 'exito' });
+	}
+
 	formulario.reset();
 	reiniciarObjetoCita();
-	new Notificacion({ texto: 'Paciente registrado', tipo: 'exito' });
+	formularioInput.value = 'Registrar paciente';
+	editando = false;
 }
 
 function reiniciarObjetoCita() {
@@ -187,5 +214,12 @@ function generarId() {
 }
 
 function cargarEdicion(cita) {
-	console.log(cita);
+	Object.assign(citaObj, cita);
+	pacienteInput.value = cita.paciente;
+	propietarioInput.value = cita.propietario;
+	emailInput.value = cita.email;
+	fechaeInput.value = cita.fecha;
+	sintomasInput.value = cita.sintomas;
+	editando = true;
+	formularioInput.value = 'Guardar cambios';
 }
